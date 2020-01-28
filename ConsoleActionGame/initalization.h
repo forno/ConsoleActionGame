@@ -1,13 +1,13 @@
 #pragma once
 
-#include <windows.h>
+#include <Windows.h>
 
 #ifdef __cplusplus
 
 class console_initalizaiton
 {
 public:
-  console_initalizaiton(HANDLE& input_handle);
+  console_initalizaiton(HANDLE& input_handle, DWORD new_flags);
   ~console_initalizaiton();
 private:
   class impl;

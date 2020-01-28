@@ -1,19 +1,18 @@
 #include "initalization.h"
 
-#include <stdexcept>
-#include <windows.h>
-
 #ifdef __cplusplus
+
+#include <stdexcept>
 
 class console_initalizaiton::impl
 {
 public:
-  impl(HANDLE& input_handle)
+  impl(HANDLE& input_handle, DWORD new_flags)
     : handle{ input_handle }
   {
     if (!GetConsoleMode(input_handle, &console_old_mode))
       throw std::runtime_error{ "console_initalizaiton: Fail GetConsoleMode" };
-    if (!SetConsoleMode(input_handle, ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS))
+    if (!SetConsoleMode(input_handle, new_flags))
       throw std::runtime_error{ "console_initalizaiton: Fail SetConsoleMode" };
   }
 
@@ -27,8 +26,8 @@ private:
   DWORD console_old_mode;
 };
 
-console_initalizaiton::console_initalizaiton(HANDLE& input_handle)
-  : pimpl{ new impl{ input_handle } } {}
+console_initalizaiton::console_initalizaiton(HANDLE& input_handle, DWORD new_flags)
+  : pimpl{ new impl{ input_handle, new_flags } } {}
 
 console_initalizaiton::~console_initalizaiton() { delete pimpl; }
 
