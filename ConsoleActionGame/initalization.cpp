@@ -1,4 +1,36 @@
+#include "initalization.h"
+
 #include <windows.h>
+
+#ifdef __cplusplus
+
+class console_initalizaiton::impl
+{
+public:
+	impl(HANDLE& input_handle)
+		: handle{ input_handle }
+	{
+		if (!GetConsoleMode(input_handle, &console_old_mode))
+			return;
+		if (!SetConsoleMode(input_handle, ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS))
+			return;
+	}
+	
+	~impl()
+	{
+		SetConsoleMode(handle, console_old_mode);
+	}
+
+private:
+	HANDLE& handle;
+	DWORD console_old_mode;
+};
+
+console_initalizaiton::console_initalizaiton(HANDLE& input_handle) : pimpl{ new impl{input_handle} } {}
+
+console_initalizaiton::~console_initalizaiton() { delete pimpl; }
+
+#else
 
 HANDLE input_handle;
 static DWORD console_old_mode;
@@ -26,3 +58,5 @@ bool initalize()
 	is_init = true;
 	return true;
 }
+
+#endif

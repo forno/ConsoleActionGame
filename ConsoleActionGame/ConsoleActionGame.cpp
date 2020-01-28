@@ -10,8 +10,10 @@
 
 int main(void)
 {
-    if (initalize())
-        return 0;
+    HANDLE input_handle;
+    if ((input_handle = GetStdHandle(STD_INPUT_HANDLE)) == INVALID_HANDLE_VALUE)
+    	return;
+    console_initalizaiton ci{ input_handle };
 
     Status s{ Title };
     Data d;
@@ -28,10 +30,8 @@ int main(void)
                 s = result_func(&d);
                 break;
             case Finish:
-                myexit();
                 return 0;
         }
     }
-    myexit();
     return 0;
 }

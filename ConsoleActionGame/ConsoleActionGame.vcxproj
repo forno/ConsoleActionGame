@@ -149,14 +149,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ConsoleActionGame.cpp" />
-    <ClCompile Include="Initalization.cpp" />
+    <ClCompile Include="initalization.cpp" />
     <ClCompile Include="gaming.cpp" />
     <ClCompile Include="result.cpp" />
     <ClCompile Include="title.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gaming.h" />
-    <ClInclude Include="Initalization.h" />
+    <ClInclude Include="initalization.h" />
     <ClInclude Include="result.h" />
     <ClInclude Include="status.h" />
     <ClInclude Include="title.h" />
