@@ -7,11 +7,11 @@
 class console_initalizaiton
 {
 public:
-	console_initalizaiton(HANDLE& input_handle);
-	~console_initalizaiton();
+  console_initalizaiton(HANDLE& input_handle);
+  ~console_initalizaiton();
 private:
-	class impl;
-	impl* pimpl;
+  class impl;
+  impl* pimpl;
 };
 
 #else
