@@ -4,6 +4,7 @@
 
 class input_manager
 {
+public:
   input_manager(HANDLE& input_handle);
   ~input_manager() noexcept;
   void update();
