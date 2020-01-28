@@ -1,6 +1,6 @@
 #pragma once
 
-enum Status
+enum class state
 {
     Title,
     Gaming,
@@ -8,7 +8,7 @@ enum Status
     Finish
 };
 
-struct Data
+struct game_data
 {
     int score;
     int life_count;

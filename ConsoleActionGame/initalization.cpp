@@ -1,5 +1,6 @@
 #include "initalization.h"
 
+#include <stdexcept>
 #include <windows.h>
 
 #ifdef __cplusplus
@@ -11,12 +12,12 @@ public:
 		: handle{ input_handle }
 	{
 		if (!GetConsoleMode(input_handle, &console_old_mode))
-			return;
+			throw std::runtime_error{ "console_initalizaiton: Fail GetConsoleMode" };
 		if (!SetConsoleMode(input_handle, ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS))
-			return;
+			throw std::runtime_error{ "console_initalizaiton: Fail SetConsoleMode" };
 	}
 	
-	~impl()
+	~impl() noexcept
 	{
 		SetConsoleMode(handle, console_old_mode);
 	}
