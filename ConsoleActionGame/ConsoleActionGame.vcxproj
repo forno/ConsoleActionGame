@@ -151,11 +151,13 @@
     <ClCompile Include="ConsoleActionGame.cpp" />
     <ClCompile Include="initalization.cpp" />
     <ClCompile Include="gaming.cpp" />
+    <ClCompile Include="input_manager.cpp" />
     <ClCompile Include="result.cpp" />
     <ClCompile Include="title.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gaming.h" />
+    <ClInclude Include="input_manager.h" />
     <ClInclude Include="initalization.h" />
     <ClInclude Include="result.h" />
     <ClInclude Include="status.h" />

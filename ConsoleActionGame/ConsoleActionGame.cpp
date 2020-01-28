@@ -1,6 +1,6 @@
 ﻿#include <chrono>
 #include <iostream>
-#include <windows.h>
+#include <Windows.h>
 
 #include "initalization.h"
 #include "gaming.h"
@@ -13,7 +13,7 @@ int main(void)
     HANDLE input_handle;
     if ((input_handle = GetStdHandle(STD_INPUT_HANDLE)) == INVALID_HANDLE_VALUE)
     	return;
-    console_initalizaiton ci{ input_handle };
+    console_initalizaiton ci{ input_handle, ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS };
 
     Status s{ Title };
     Data d;
