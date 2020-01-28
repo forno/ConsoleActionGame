@@ -10,7 +10,8 @@
 
 int main(void)
 {
-    initalize();
+    if (initalize())
+        return 0;
 
     Status s{ Title };
     Data d;
