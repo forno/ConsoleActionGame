@@ -2,7 +2,6 @@
 
 #include <array>
 #include <iostream>
-#include <mutex>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -155,12 +154,10 @@ struct input_manager::impl
 {
   HANDLE input_handle;
   std::variant<NormalInput, NativeInput> value;
-  std::mutex m;
 
   impl(HANDLE& ih) noexcept
     : input_handle{ ih },
-      value{ NormalInput{} },
-      m {}
+      value{ NormalInput{} }
   { }
 };
 
@@ -172,13 +169,11 @@ input_manager::~input_manager() noexcept { delete pimpl; }
 
 void input_manager::update()
 {
-  std::lock_guard lg{ pimpl->m };
   std::visit(input_updater{ pimpl->input_handle }, pimpl->value);
 }
 
 void input_manager::set_native(bool enable)
 {
-  std::lock_guard lg{ pimpl->m };
   if (enable) {
     pimpl->value = NativeInput{ { pimpl->input_handle, ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS }, 0 };
   } else {
@@ -188,20 +183,14 @@ void input_manager::set_native(bool enable)
 
 unsigned int input_manager::get_enter_count() noexcept
 {
-  std::lock_guard lg{ pimpl->m };
-  {
-    visit_guard vg{ input_reseter{}, pimpl->value };
-    if (std::holds_alternative<NativeInput>(pimpl->value))
-      return std::get<NativeInput>(pimpl->value).enter_count;
-    return 1;
-  }
+  visit_guard vg{ input_reseter{}, pimpl->value };
+  if (std::holds_alternative<NativeInput>(pimpl->value))
+    return std::get<NativeInput>(pimpl->value).enter_count;
+  return 1;
 }
 
 std::string input_manager::getline()
 {
-  std::lock_guard lg{ pimpl->m };
-  {
-    visit_guard vg{ input_reseter{}, pimpl->value };
-    return std::visit([](const auto& v) { return v.row_input; }, pimpl->value);
-  }
+  visit_guard vg{ input_reseter{}, pimpl->value };
+  return std::visit([](const auto& v) { return v.row_input; }, pimpl->value);
 }
