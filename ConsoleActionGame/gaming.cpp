@@ -21,7 +21,7 @@ struct enter_mash
   unsigned int count{ 0 };
 };
 struct finish {
-  unsigned int count{ 0 };
+  unsigned int count{};
 };
 using status = std::variant<count_down, enter_mash, finish>;
 
@@ -51,7 +51,8 @@ struct updater
 struct render
 {
   void operator()(const count_down& v) {
-    std::cout << std::chrono::ceil<std::chrono::seconds>(v.time_limit - std::chrono::steady_clock::now()).count() << std::flush;
+    std::cout << "Are you ready to smash enter key?\n" <<
+                 "Count down: " << std::chrono::ceil<std::chrono::seconds>(v.time_limit - std::chrono::steady_clock::now()).count() << std::flush;
   }
 
   void operator()(const enter_mash& v) {
