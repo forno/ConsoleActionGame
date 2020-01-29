@@ -34,7 +34,6 @@ status updater::operator()(const state::result& v)
 
 void render::operator()(const state::result& v)
 {
-  static bool init{ false };
   std::cout << "result: " << v.score << '\n' <<
                "Enter 'q' to go to title > " << std::flush;
 }
