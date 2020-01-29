@@ -1,5 +1,7 @@
 ﻿#include <Windows.h>
 
+#include <cstdlib>
+
 #include "input_manager.h"
 #include "status.h"
 #include "updater.h"
