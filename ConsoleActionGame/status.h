@@ -9,8 +9,13 @@ namespace state
   struct title {
     title(input_manager& im);
   };
+  
   struct gaming {
     gaming(input_manager& im);
+
+  private:
+    class impl;
+    impl* pimpl;
   };
   struct result {
     result(input_manager& im);

@@ -41,7 +41,7 @@ namespace
 
     console_mode_guard& operator=(console_mode_guard&& cmg) noexcept
     {
-      SetConsoleMode(handle, console_old_mode);
+      SetConsoleMode(handle, console_old_mode); // XXX: maybe no need
       handle = cmg.handle;
       console_mode = cmg.console_mode;
       console_old_mode = cmg.console_old_mode;
@@ -93,7 +93,7 @@ namespace
         {
           const auto& key{ e.Event.KeyEvent };
           row_input.push_back(key.uChar.AsciiChar);
-          if (!key.bKeyDown && key.wVirtualKeyCode == VK_RETURN)
+          if (!key.bKeyDown && key.wVirtualKeyCode == VK_RETURN) // this needed for detect key up
             ++v.enter_count;
         }
         break;
@@ -110,6 +110,7 @@ namespace
       });
     }
   };
+
 }
 
 class input_manager::impl
