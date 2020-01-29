@@ -1,15 +1,16 @@
 #pragma once
 
-enum class state
+namespace state
 {
-    Title,
-    Gaming,
-    Result,
-    Finish
+  struct title {};
+  struct gaming {};
+  struct result {};
+  struct finish {};
+}
+
+struct data
+{
+  int score; // TODO: modify for share datas
 };
 
-struct game_data
-{
-    int score;
-    int life_count;
-};
+using status = std::variant<state::title, state::gaming, state::result, state::finish>;
