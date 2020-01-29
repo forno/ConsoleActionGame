@@ -25,9 +25,9 @@ struct gaming {
   bool operator==(const gaming& g) const noexcept;
 };
 struct result {
-  unsigned int score;
+  std::int_fast32_t score;
 
-  result(input_manager& im, unsigned int score);
+  result(input_manager& im, std::int_fast32_t score);
   bool operator==(const result& rhs) const noexcept;
 };
 

@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-state::result::result(input_manager& im, unsigned int score_)
+state::result::result(input_manager& im, std::int_fast32_t score_)
   : score{ score_ }
 {
   im.set_native(false);
