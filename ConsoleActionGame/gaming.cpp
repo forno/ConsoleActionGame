@@ -30,7 +30,7 @@ struct updater
 
   status operator()(count_down& v) {
     if (std::chrono::steady_clock::now() < v.time_limit)
-      return count_down{ v };
+      return v;
     using namespace std::literals::chrono_literals;
     return enter_mash{ std::chrono::steady_clock::now() + 5s };
   }
@@ -39,10 +39,10 @@ struct updater
     if (v.time_limit <= std::chrono::steady_clock::now())
       return finish{ v.count };
     v.count += im.get_enter_count();
-    return enter_mash{ v };
+    return v;
   }
 
-  status operator()(finish& v) { return finish{ v }; }
+  status operator()(finish& v) { return v; }
 };
 
 struct render
@@ -79,7 +79,7 @@ status updater::operator()(state::gaming& v)
   if (std::holds_alternative<game::finish>(v.pimpl->value))
     return state::result{ im,  std::get<game::finish>(v.pimpl->value).count };
   v.pimpl->value = std::visit(game::updater{ im }, v.pimpl->value);
-  return state::gaming{ v };
+  return v;
 }
 
 void render::operator()(state::gaming& v)
