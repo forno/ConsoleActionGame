@@ -4,6 +4,8 @@
 
 struct render
 {
+  render();
+
   void operator()(state::title&);
   void operator()(state::gaming&);
   void operator()(state::result&);

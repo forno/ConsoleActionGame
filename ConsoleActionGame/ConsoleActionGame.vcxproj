@@ -151,6 +151,7 @@
     <ClCompile Include="ConsoleActionGame.cpp" />
     <ClCompile Include="gaming.cpp" />
     <ClCompile Include="input_manager.cpp" />
+    <ClCompile Include="render.cpp" />
     <ClCompile Include="result.cpp" />
     <ClCompile Include="finish.cpp" />
     <ClCompile Include="title.cpp" />
