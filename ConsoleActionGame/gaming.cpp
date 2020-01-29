@@ -97,6 +97,8 @@ state::gaming::gaming(gaming&& g) noexcept
 
 state::gaming& state::gaming::operator=(gaming&& g) noexcept
 {
+  if (this == &g)
+    return *this;
   delete pimpl;
   pimpl = g.pimpl;
   g.pimpl = nullptr;

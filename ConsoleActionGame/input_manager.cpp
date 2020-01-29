@@ -41,7 +41,9 @@ public:
 
   console_mode_guard& operator=(console_mode_guard&& cmg) noexcept
   {
-    SetConsoleMode(handle, console_old_mode); // XXX: maybe no need
+    if (this == &cmg)
+      return *this;
+    SetConsoleMode(handle, console_old_mode);
     handle = cmg.handle;
     console_mode = cmg.console_mode;
     console_old_mode = cmg.console_old_mode;
@@ -57,13 +59,13 @@ private:
 
 struct NormalInput
 {
-  std::string row_input;
+  std::string row_input{};
 };
 struct NativeInput
 {
   console_mode_guard cmg;
-  unsigned int enter_count;
-  std::string row_input;
+  unsigned int enter_count{};
+  std::string row_input{};
 };
 
 struct input_updater
@@ -76,19 +78,17 @@ struct input_updater
     DWORD read_count;
     if (!ReadConsole(input_handle, inputs.data(), static_cast<DWORD>(inputs.size()), &read_count, nullptr))
       throw std::runtime_error{ "input_manager: fail ReadConsoleInput" };
-    v.row_input.assign(inputs.cbegin(), std::next(inputs.cbegin(), read_count));
+    v.row_input.append(inputs.cbegin(), std::next(inputs.cbegin(), read_count));
   }
 
   void operator()(NativeInput& v)
   {
-    auto& row_input{ v.row_input };
-    row_input.clear();
-    v.enter_count = 0;
     std::array<INPUT_RECORD, 1 << 8> inputs;
     DWORD read_count;
     if (!ReadConsoleInput(input_handle, inputs.data(), static_cast<DWORD>(inputs.size()), &read_count))
       throw std::runtime_error{ "input_manager: fail ReadConsoleInput" };
 
+    auto& row_input{ v.row_input };
     for_each(inputs.cbegin(), next(inputs.cbegin(), read_count), [&](const INPUT_RECORD& e) {
       switch (e.EventType) {
       case KEY_EVENT: // keyboard input
@@ -111,6 +111,37 @@ struct input_updater
       }
       });
   }
+};
+
+struct input_reseter
+{
+  void operator()(NormalInput& v) noexcept
+  {
+    v = {};
+  }
+
+  void operator()(NativeInput& v) noexcept
+  {
+    v = { std::move(v.cmg) };
+  }
+};
+
+template<typename F, typename T>
+struct visit_guard
+{
+  visit_guard(F f_, T& v_)
+    : f{ f_ },
+      v{ v_ }
+  {}
+
+  ~visit_guard() noexcept
+  {
+    std::visit(f, v);
+  }
+
+private:
+  F f;
+  T& v;
 };
 
 }
@@ -148,13 +179,14 @@ void input_manager::set_native(bool enable)
 
 unsigned int input_manager::get_enter_count() noexcept
 {
-  if (std::holds_alternative<NativeInput>(pimpl->value)) {
+  visit_guard vg{ input_reseter{}, pimpl->value };
+  if (std::holds_alternative<NativeInput>(pimpl->value))
     return std::get<NativeInput>(pimpl->value).enter_count;
-  }
   return 1;
 }
 
 std::string input_manager::getline()
 {
+  visit_guard vg{ input_reseter{}, pimpl->value };
   return std::visit([](const auto& v) { return v.row_input; }, pimpl->value);
 }
