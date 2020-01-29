@@ -9,7 +9,8 @@
 
 #include <Windows.h>
 
-namespace {
+namespace
+{
 
   class console_mode_guard
   {
@@ -60,6 +61,7 @@ namespace {
   {
     console_mode_guard cmg;
     unsigned int enter_count;
+    std::string row_input;
   };
 
   struct input_updater
@@ -78,12 +80,15 @@ namespace {
       if (!ReadConsoleInput(input_handle, inputs.data(), static_cast<DWORD>(inputs.size()), &read_count))
         throw std::runtime_error{ "input_manager: fail ReadConsoleInput" };
 
+      v.row_input.clear();
+      v.row_input.reserve(read_count);
       for_each(inputs.cbegin(), next(inputs.cbegin(), read_count), [&](const INPUT_RECORD& e) {
         switch (e.EventType)
         {
         case KEY_EVENT: // keyboard input
         {
           const auto& key{ e.Event.KeyEvent };
+          v.row_input.push_back(key.uChar.AsciiChar);
           if (!key.bKeyDown && key.wVirtualKeyCode == VK_RETURN)
             ++v.enter_count;
         }
@@ -136,6 +141,11 @@ public:
     return 1;
   }
 
+  std::string getline()
+  {
+    return std::visit([](const auto& v) { return v.row_input; }, value);
+  }
+
 private:
   HANDLE input_handle;
   std::variant<NormalInput, NativeInput> value;
@@ -147,10 +157,17 @@ input_manager::input_manager(HANDLE& input_handle)
 
 input_manager::~input_manager() noexcept { delete pimpl; }
 
-void input_manager::update() {
+void input_manager::update()
+{
   pimpl->update();
 }
 
-unsigned int input_manager::get_enter_count() noexcept {
+unsigned int input_manager::get_enter_count() noexcept
+{
   return pimpl->get_enter_count();
+}
+
+std::string input_manager::getline()
+{
+  return pimpl->getline();
 }
