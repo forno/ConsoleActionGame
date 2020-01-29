@@ -15,14 +15,14 @@ struct count_down
 {
   std::chrono::steady_clock::time_point time_limit;
 
-  bool operator==(const count_down& cd) const noexcept { return time_limit == cd.time_limit; }
+  bool operator==(const count_down& cd) const noexcept { return false; }
 };
 struct enter_mash
 {
   std::chrono::steady_clock::time_point time_limit;
   unsigned int count{ 0 };
 
-  bool operator==(const enter_mash& em) const noexcept { return time_limit == em.time_limit && count == em.count; }
+  bool operator==(const enter_mash& em) const noexcept { return false; }
 };
 struct finish {
   unsigned int count{};
