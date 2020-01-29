@@ -12,7 +12,7 @@ status updater::operator()(state::title& v)
 {
   const auto& input{ im.getline() };
   if (input.empty())
-    return state::title{ v };
+    return v;
   switch (input.front()) {
   case '1': [[fallthrough]];
   case 'c': [[fallthrough]];
@@ -24,9 +24,9 @@ status updater::operator()(state::title& v)
   case 'q':
     return state::finish{ im };
   default:
-    return state::title{ v };
+    return v;
   }
-  return state::title{ v };
+  return v;
 }
 
 void render::operator()(state::title&)
