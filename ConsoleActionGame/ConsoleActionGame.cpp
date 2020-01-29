@@ -9,8 +9,8 @@
 
 int main(void)
 {
-  HANDLE input_handle;
-  if ((input_handle = GetStdHandle(STD_INPUT_HANDLE)) == INVALID_HANDLE_VALUE)
+  HANDLE input_handle{ GetStdHandle(STD_INPUT_HANDLE) };
+  if (input_handle == INVALID_HANDLE_VALUE)
     return EXIT_SUCCESS;
 
   input_manager im{ input_handle };
