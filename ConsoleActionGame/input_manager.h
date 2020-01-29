@@ -16,6 +16,6 @@ public:
   std::string getline();
 
 private:
-  class impl;
+  struct impl;
   impl* pimpl;
 };

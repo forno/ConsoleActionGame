@@ -113,44 +113,15 @@ namespace
 
 }
 
-class input_manager::impl
+struct input_manager::impl
 {
-public:
+  HANDLE input_handle;
+  std::variant<NormalInput, NativeInput> value;
+
   impl(HANDLE& ih) noexcept
     : input_handle{ ih },
       value{ NormalInput{} }
   { }
-
-  void update()
-  {
-    std::visit(input_updater{ input_handle }, value);
-  }
-
-  void set_native(bool enable)
-  {
-    if (enable) {
-      value = NativeInput{ { input_handle, ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS }, 0 };
-    } else {
-      value = NormalInput{ };
-    }
-  }
-
-  unsigned int get_enter_count() noexcept
-  {
-    if (std::holds_alternative<NativeInput>(value)) {
-      return std::get<NativeInput>(value).enter_count;
-    }
-    return 1;
-  }
-
-  std::string getline()
-  {
-    return std::visit([](const auto& v) { return v.row_input; }, value);
-  }
-
-private:
-  HANDLE input_handle;
-  std::variant<NormalInput, NativeInput> value;
 };
 
 input_manager::input_manager(HANDLE& input_handle)
@@ -161,20 +132,27 @@ input_manager::~input_manager() noexcept { delete pimpl; }
 
 void input_manager::update()
 {
-  pimpl->update();
+  std::visit(input_updater{ pimpl->input_handle }, pimpl->value);
 }
 
 void input_manager::set_native(bool enable)
 {
-  pimpl->set_native(enable);
+  if (enable) {
+    pimpl->value = NativeInput{ { pimpl->input_handle, ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS }, 0 };
+  } else {
+    pimpl->value = NormalInput{ };
+  }
 }
 
 unsigned int input_manager::get_enter_count() noexcept
 {
-  return pimpl->get_enter_count();
+  if (std::holds_alternative<NativeInput>(pimpl->value)) {
+    return std::get<NativeInput>(pimpl->value).enter_count;
+  }
+  return 1;
 }
 
 std::string input_manager::getline()
 {
-  return pimpl->getline();
+  return std::visit([](const auto& v) { return v.row_input; }, pimpl->value);
 }
