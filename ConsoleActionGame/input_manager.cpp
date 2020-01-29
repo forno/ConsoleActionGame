@@ -38,6 +38,7 @@ namespace
     {
       cmg.console_old_mode = cmg.console_mode;
     }
+
     console_mode_guard& operator=(console_mode_guard&& cmg) noexcept
     {
       SetConsoleMode(handle, console_old_mode);
@@ -45,6 +46,7 @@ namespace
       console_mode = cmg.console_mode;
       console_old_mode = cmg.console_old_mode;
       cmg.console_old_mode = cmg.console_mode;
+      return *this;
     }
 
   private:
@@ -70,7 +72,11 @@ namespace
 
     void operator()(NormalInput& v)
     {
-      std::getline(std::cin, v.row_input);
+      std::array<char, 1 << 8> inputs;
+      DWORD read_count;
+      if (!ReadConsole(input_handle, inputs.data(), static_cast<DWORD>(inputs.size()), &read_count, nullptr))
+        throw std::runtime_error{ "input_manager: fail ReadConsoleInput" };
+      v.row_input.assign(inputs.cbegin(), std::next(inputs.cbegin(), read_count));
     }
 
     void operator()(NativeInput& v)
@@ -80,15 +86,13 @@ namespace
       if (!ReadConsoleInput(input_handle, inputs.data(), static_cast<DWORD>(inputs.size()), &read_count))
         throw std::runtime_error{ "input_manager: fail ReadConsoleInput" };
 
-      v.row_input.clear();
-      v.row_input.reserve(read_count);
+      auto& row_input{ v.row_input };
       for_each(inputs.cbegin(), next(inputs.cbegin(), read_count), [&](const INPUT_RECORD& e) {
-        switch (e.EventType)
-        {
+        switch (e.EventType) {
         case KEY_EVENT: // keyboard input
         {
           const auto& key{ e.Event.KeyEvent };
-          v.row_input.push_back(key.uChar.AsciiChar);
+          row_input.push_back(key.uChar.AsciiChar);
           if (!key.bKeyDown && key.wVirtualKeyCode == VK_RETURN)
             ++v.enter_count;
         }
@@ -121,7 +125,7 @@ public:
 
   void update()
   {
-    std::visit(input_updater{input_handle}, value);
+    std::visit(input_updater{ input_handle }, value);
   }
 
   void set_native(bool enable)
@@ -160,6 +164,11 @@ input_manager::~input_manager() noexcept { delete pimpl; }
 void input_manager::update()
 {
   pimpl->update();
+}
+
+void input_manager::set_native(bool enable)
+{
+  pimpl->set_native(enable);
 }
 
 unsigned int input_manager::get_enter_count() noexcept

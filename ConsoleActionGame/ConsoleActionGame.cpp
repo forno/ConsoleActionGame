@@ -1,5 +1,4 @@
-﻿#include <variant>
-#include <Windows.h>
+﻿#include <Windows.h>
 
 #include "input_manager.h"
 #include "status.h"
@@ -13,7 +12,7 @@ int main(void)
     return EXIT_SUCCESS;
 
   input_manager im{ input_handle };
-  status s{ state::title{} };
+  status s{ state::title{ im } };
 
   while (true) {
     std::visit(render{}, s);

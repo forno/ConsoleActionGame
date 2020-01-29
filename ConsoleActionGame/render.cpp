@@ -4,7 +4,7 @@
 
 render::render()
 {
-  COORD topLeft { 0, 0 };
+  COORD topLeft{ 0, 0 };
   HANDLE console{ GetStdHandle(STD_OUTPUT_HANDLE) };
   CONSOLE_SCREEN_BUFFER_INFO screen;
   GetConsoleScreenBufferInfo(console, &screen);
