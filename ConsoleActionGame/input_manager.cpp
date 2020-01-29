@@ -98,12 +98,9 @@ namespace
         }
         break;
 
-        case MOUSE_EVENT:
-          [[fallthrough]];
-        case WINDOW_BUFFER_SIZE_EVENT:
-          [[fallthrough]];
-        case FOCUS_EVENT:
-          [[fallthrough]];
+        case MOUSE_EVENT: [[fallthrough]];
+        case WINDOW_BUFFER_SIZE_EVENT: [[fallthrough]];
+        case FOCUS_EVENT: [[fallthrough]];
         case MENU_EVENT:
           break;
 

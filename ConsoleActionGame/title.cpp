@@ -2,7 +2,6 @@
 #include "render.h"
 
 #include <iostream>
-#include <limits>
 
 state::title::title(input_manager& im)
 {
@@ -12,9 +11,20 @@ state::title::title(input_manager& im)
 status updater::operator()(state::title&)
 {
   const auto& input{ im.getline() };
-  if (!input.empty() && input.front() == '1') {
-    im.set_native(true);
+  if (input.empty())
+    return state::title{ im };
+  switch (input.front()) {
+  case '1': [[fallthrough]];
+  case 'c': [[fallthrough]];
+  case 'g':
     return state::gaming{ im };
+  case '2': [[fallthrough]];
+  case 'e': [[fallthrough]];
+  case 'f': [[fallthrough]];
+  case 'q':
+    return state::finish{ im };
+  default:
+    return state::title{ im };
   }
   return state::title{ im };
 }
@@ -25,5 +35,5 @@ void render::operator()(state::title&)
     "This is title:\n" <<
     "You can choice continue or die.\n" <<
     "continue: 1, quit: 2\n" <<
-    "> ";
+    "> " << std::flush;
 }

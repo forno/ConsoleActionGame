@@ -1,6 +1,8 @@
 #include "updater.h"
 #include "render.h"
 
+#include <iostream>
+
 state::result::result(input_manager& im)
   : score{}
 {
@@ -14,4 +16,6 @@ status updater::operator()(state::result&)
 
 void render::operator()(state::result&)
 {
+  std::cout << "result:\n" <<
+               "> " << std::flush;
 }
