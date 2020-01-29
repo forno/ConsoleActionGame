@@ -1,6 +1,6 @@
 #pragma once
 
-#include <mutex>
+#include <cstdlib>
 
 #include "status.h"
 
@@ -12,5 +12,5 @@ struct render
   void operator()(const state::gaming&);
   void operator()(const state::result&);
   [[noreturn]]
-  void operator()(const state::finish&);
+  void operator()(const std::monostate&) { std::exit(0); }
 };

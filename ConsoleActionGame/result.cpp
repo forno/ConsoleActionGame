@@ -9,6 +9,8 @@ state::result::result(input_manager& im, unsigned int score_)
   im.set_native(false);
 }
 
+bool state::result::operator==(const result& rhs) const noexcept { return score == rhs.score; }
+
 status updater::operator()(const state::result& v)
 {
   const auto& input{ im.getline() };

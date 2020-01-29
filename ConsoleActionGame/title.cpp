@@ -8,6 +8,8 @@ state::title::title(input_manager& im)
   im.set_native(false);
 }
 
+bool state::title::operator==(const title&) const noexcept { return true; }
+
 status updater::operator()(const state::title& v)
 {
   const auto& input{ im.getline() };
@@ -23,7 +25,7 @@ status updater::operator()(const state::title& v)
   case 'e': [[fallthrough]];
   case 'f': [[fallthrough]];
   case 'q':
-    return state::finish{ im };
+    return std::monostate{};
   default:
     return v;
   }

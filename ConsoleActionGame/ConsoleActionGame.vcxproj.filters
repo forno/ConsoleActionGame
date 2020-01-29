@@ -30,9 +30,6 @@
     <ClCompile Include="title.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="finish.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="render.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>

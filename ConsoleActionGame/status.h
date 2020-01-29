@@ -9,6 +9,7 @@ namespace state
 
 struct title {
   title(input_manager& im);
+  bool operator==(const title& rhs) const noexcept;
 };
 
 struct gaming {
@@ -21,18 +22,17 @@ struct gaming {
   gaming& operator=(const gaming& g);
   gaming(gaming&& g) noexcept;
   gaming& operator=(gaming&& g) noexcept;
+  bool operator==(const gaming& g) const noexcept;
 };
 struct result {
   unsigned int score;
 
   result(input_manager& im, unsigned int score);
-};
-struct finish {
-  finish(input_manager& im);
+  bool operator==(const result& rhs) const noexcept;
 };
 
 }
 
-using status = std::variant<state::title, state::gaming, state::result, state::finish>;
+using status = std::variant<state::title, state::gaming, state::result, std::monostate>;
 
 bool is_finish(const status& v) noexcept;

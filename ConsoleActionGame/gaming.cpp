@@ -14,15 +14,22 @@ namespace game
 struct count_down
 {
   std::chrono::steady_clock::time_point time_limit;
+
+  bool operator==(const count_down& cd) const noexcept { return time_limit == cd.time_limit; }
 };
 struct enter_mash
 {
   std::chrono::steady_clock::time_point time_limit;
   unsigned int count{ 0 };
+
+  bool operator==(const enter_mash& em) const noexcept { return time_limit == em.time_limit && count == em.count; }
 };
 struct finish {
   unsigned int count{};
+
+  bool operator==(const finish& f) const noexcept { return count == f.count; }
 };
+
 using status = std::variant<count_down, enter_mash, finish>;
 
 struct updater
@@ -104,6 +111,11 @@ state::gaming& state::gaming::operator=(gaming&& g) noexcept
   pimpl = g.pimpl;
   g.pimpl = nullptr;
   return *this;
+}
+
+bool state::gaming::operator==(const gaming& g) const noexcept
+{
+  return pimpl->value == g.pimpl->value;
 }
 
 status updater::operator()(const state::gaming& v)

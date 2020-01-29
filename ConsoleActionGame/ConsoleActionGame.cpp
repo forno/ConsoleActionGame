@@ -3,6 +3,7 @@
 #include <atomic>
 #include <chrono>
 #include <cstdlib>
+#include <iostream>
 #include <mutex>
 #include <thread>
 
@@ -21,13 +22,15 @@ int main(void)
   input_manager im{ input_handle };
   status s{ state::title{ im } };
   std::mutex m;
-  std::atomic_bool f{ true };
+  std::atomic_bool is_termination{ false };
+  std::atomic_bool is_changed{ true };
 
   std::thread render_thread{ [&]() {
-    while (f) {
+    while (!is_termination) {
       using namespace std::literals::chrono_literals;
-      const thread_sleeper ts{ 1000ms / 5 };
-      {
+      thread_sleeper ts{ 1000ms / 60 };
+      if (is_changed) {
+        is_changed = false;
         std::lock_guard lg{ m };
         std::visit(render{}, s);
       }
@@ -35,12 +38,16 @@ int main(void)
   } };
 
   while (!is_finish(s)) {
+    using namespace std::literals::chrono_literals;
+    thread_sleeper ts{ 1000ms / 60 };
     im.update();
-    auto s_tmp{ std::visit(updater{ im }, s) };
+    auto next_state{ std::visit(updater{ im }, s) };
+    if (!(s == next_state))
+      is_changed = true;
     std::lock_guard lg{ m };
-    s = std::move(s_tmp);
+    s = std::move(next_state);
   }
-  f = false;
+  is_termination = true;
   render_thread.join();
   return EXIT_SUCCESS;
 }

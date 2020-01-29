@@ -12,5 +12,5 @@ struct updater
   status operator()(const state::title&);
   status operator()(const state::gaming&);
   status operator()(const state::result&);
-  status operator()(const state::finish&);
+  status operator()(const std::monostate&) { std::exit(0); }
 };
