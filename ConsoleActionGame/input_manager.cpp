@@ -12,104 +12,104 @@
 namespace
 {
 
-  class console_mode_guard
+class console_mode_guard
+{
+public:
+  console_mode_guard(HANDLE& input_handle, DWORD new_flags)
+    : handle{ input_handle },
+    console_mode{ new_flags },
+    console_old_mode{}
   {
-  public:
-    console_mode_guard(HANDLE& input_handle, DWORD new_flags)
-      : handle{ input_handle },
-        console_mode{ new_flags },
-        console_old_mode{}
-    {
-      if (!GetConsoleMode(handle, &console_old_mode))
-        throw std::runtime_error{ "console_initalizaiton: Fail GetConsoleMode" };
-      if (!SetConsoleMode(handle, console_mode))
-        throw std::runtime_error{ "console_initalizaiton: Fail SetConsoleMode" };
-    }
+    if (!GetConsoleMode(handle, &console_old_mode))
+      throw std::runtime_error{ "console_initalizaiton: Fail GetConsoleMode" };
+    if (!SetConsoleMode(handle, console_mode))
+      throw std::runtime_error{ "console_initalizaiton: Fail SetConsoleMode" };
+  }
 
-    ~console_mode_guard() noexcept
-    {
-      SetConsoleMode(handle, console_old_mode);
-    }
-
-    console_mode_guard(console_mode_guard&& cmg) noexcept
-      : handle{ cmg.handle },
-        console_mode{ cmg.console_mode },
-        console_old_mode{ cmg.console_old_mode }
-    {
-      cmg.console_old_mode = cmg.console_mode;
-    }
-
-    console_mode_guard& operator=(console_mode_guard&& cmg) noexcept
-    {
-      SetConsoleMode(handle, console_old_mode); // XXX: maybe no need
-      handle = cmg.handle;
-      console_mode = cmg.console_mode;
-      console_old_mode = cmg.console_old_mode;
-      cmg.console_old_mode = cmg.console_mode;
-      return *this;
-    }
-
-  private:
-    HANDLE& handle;
-    DWORD console_mode;
-    DWORD console_old_mode;
-  };
-
-  struct NormalInput
+  ~console_mode_guard() noexcept
   {
-    std::string row_input;
-  };
-  struct NativeInput
+    SetConsoleMode(handle, console_old_mode);
+  }
+
+  console_mode_guard(console_mode_guard&& cmg) noexcept
+    : handle{ cmg.handle },
+    console_mode{ cmg.console_mode },
+    console_old_mode{ cmg.console_old_mode }
   {
-    console_mode_guard cmg;
-    unsigned int enter_count;
-    std::string row_input;
-  };
+    cmg.console_old_mode = cmg.console_mode;
+  }
 
-  struct input_updater
+  console_mode_guard& operator=(console_mode_guard&& cmg) noexcept
   {
-    HANDLE& input_handle;
+    SetConsoleMode(handle, console_old_mode); // XXX: maybe no need
+    handle = cmg.handle;
+    console_mode = cmg.console_mode;
+    console_old_mode = cmg.console_old_mode;
+    cmg.console_old_mode = cmg.console_mode;
+    return *this;
+  }
 
-    void operator()(NormalInput& v)
-    {
-      std::array<char, 1 << 8> inputs;
-      DWORD read_count;
-      if (!ReadConsole(input_handle, inputs.data(), static_cast<DWORD>(inputs.size()), &read_count, nullptr))
-        throw std::runtime_error{ "input_manager: fail ReadConsoleInput" };
-      v.row_input.assign(inputs.cbegin(), std::next(inputs.cbegin(), read_count));
-    }
+private:
+  HANDLE& handle;
+  DWORD console_mode;
+  DWORD console_old_mode;
+};
 
-    void operator()(NativeInput& v)
-    {
-      std::array<INPUT_RECORD, 1 << 8> inputs;
-      DWORD read_count;
-      if (!ReadConsoleInput(input_handle, inputs.data(), static_cast<DWORD>(inputs.size()), &read_count))
-        throw std::runtime_error{ "input_manager: fail ReadConsoleInput" };
+struct NormalInput
+{
+  std::string row_input;
+};
+struct NativeInput
+{
+  console_mode_guard cmg;
+  unsigned int enter_count;
+  std::string row_input;
+};
 
-      auto& row_input{ v.row_input };
-      for_each(inputs.cbegin(), next(inputs.cbegin(), read_count), [&](const INPUT_RECORD& e) {
-        switch (e.EventType) {
-        case KEY_EVENT: // keyboard input
-        {
-          const auto& key{ e.Event.KeyEvent };
-          row_input.push_back(key.uChar.AsciiChar);
-          if (!key.bKeyDown && key.wVirtualKeyCode == VK_RETURN) // this needed for detect key up
-            ++v.enter_count;
-        }
+struct input_updater
+{
+  HANDLE& input_handle;
+
+  void operator()(NormalInput& v)
+  {
+    std::array<char, 1 << 8> inputs;
+    DWORD read_count;
+    if (!ReadConsole(input_handle, inputs.data(), static_cast<DWORD>(inputs.size()), &read_count, nullptr))
+      throw std::runtime_error{ "input_manager: fail ReadConsoleInput" };
+    v.row_input.assign(inputs.cbegin(), std::next(inputs.cbegin(), read_count));
+  }
+
+  void operator()(NativeInput& v)
+  {
+    std::array<INPUT_RECORD, 1 << 8> inputs;
+    DWORD read_count;
+    if (!ReadConsoleInput(input_handle, inputs.data(), static_cast<DWORD>(inputs.size()), &read_count))
+      throw std::runtime_error{ "input_manager: fail ReadConsoleInput" };
+
+    auto& row_input{ v.row_input };
+    for_each(inputs.cbegin(), next(inputs.cbegin(), read_count), [&](const INPUT_RECORD& e) {
+      switch (e.EventType) {
+      case KEY_EVENT: // keyboard input
+      {
+        const auto& key{ e.Event.KeyEvent };
+        row_input.push_back(key.uChar.AsciiChar);
+        if (!key.bKeyDown && key.wVirtualKeyCode == VK_RETURN) // this needed for detect key up
+          ++v.enter_count;
+      }
+      break;
+
+      case MOUSE_EVENT: [[fallthrough]];
+      case WINDOW_BUFFER_SIZE_EVENT: [[fallthrough]];
+      case FOCUS_EVENT: [[fallthrough]];
+      case MENU_EVENT:
         break;
 
-        case MOUSE_EVENT: [[fallthrough]];
-        case WINDOW_BUFFER_SIZE_EVENT: [[fallthrough]];
-        case FOCUS_EVENT: [[fallthrough]];
-        case MENU_EVENT:
-          break;
-
-        default:
-          throw std::runtime_error{ "input_manager: Unexpected EventType input" };
-        }
+      default:
+        throw std::runtime_error{ "input_manager: Unexpected EventType input" };
+      }
       });
-    }
-  };
+  }
+};
 
 }
 
