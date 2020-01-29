@@ -12,16 +12,15 @@ struct title {
 };
 
 struct gaming {
-  gaming(input_manager& im);
-
-private:
   struct impl;
   impl* pimpl;
+
+  gaming(input_manager& im);
 };
 struct result {
-  result(input_manager& im);
+  result(input_manager& im, unsigned int score);
 
-  int score;
+  unsigned int score;
 };
 struct finish {
   finish(input_manager& im);

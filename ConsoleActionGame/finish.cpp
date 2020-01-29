@@ -3,7 +3,7 @@
 
 #include <cstdlib>
 
-state::finish::finish(input_manager& im) {}
+state::finish::finish(input_manager&) {}
 
 status updater::operator()(state::finish&)
 {

@@ -8,11 +8,11 @@ state::title::title(input_manager& im)
   im.set_native(false);
 }
 
-status updater::operator()(state::title&)
+status updater::operator()(state::title& v)
 {
   const auto& input{ im.getline() };
   if (input.empty())
-    return state::title{ im };
+    return state::title{ v };
   switch (input.front()) {
   case '1': [[fallthrough]];
   case 'c': [[fallthrough]];
@@ -24,9 +24,9 @@ status updater::operator()(state::title&)
   case 'q':
     return state::finish{ im };
   default:
-    return state::title{ im };
+    return state::title{ v };
   }
-  return state::title{ im };
+  return state::title{ v };
 }
 
 void render::operator()(state::title&)
