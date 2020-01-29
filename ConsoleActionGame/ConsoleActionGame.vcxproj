@@ -149,9 +149,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ConsoleActionGame.cpp" />
+    <ClCompile Include="gaming.cpp" />
     <ClCompile Include="input_manager.cpp" />
+    <ClCompile Include="result.cpp" />
+    <ClCompile Include="finish.cpp" />
+    <ClCompile Include="title.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="render.h" />
     <ClInclude Include="input_manager.h" />
     <ClInclude Include="status.h" />
     <ClInclude Include="updater.h" />

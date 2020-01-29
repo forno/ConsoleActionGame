@@ -1,8 +1,10 @@
 #include "input_manager.h"
 
 #include <array>
-#include <stdexcept>
+#include <iostream>
 #include <optional>
+#include <stdexcept>
+#include <string>
 #include <variant>
 
 #include <Windows.h>
@@ -59,22 +61,19 @@ namespace {
     console_mode_guard cmg;
     unsigned int enter_count;
   };
-}
 
-class input_manager::impl
-{
-  static constexpr auto input_buf_size{ 1 << 8 };
-public:
-  impl(HANDLE& ih) noexcept
-    : input_handle{ ih },
-      value{ NormalInput{} }
-  { }
-
-  void update()
+  struct input_updater
   {
-    if (std::holds_alternative<NativeInput>(value)) {
-      auto& v{ std::get<NativeInput>(value) };
-      std::array<INPUT_RECORD, input_buf_size> inputs;
+    HANDLE& input_handle;
+
+    void operator()(NormalInput& v)
+    {
+      std::getline(std::cin, v.row_input);
+    }
+
+    void operator()(NativeInput& v)
+    {
+      std::array<INPUT_RECORD, 1 << 8> inputs;
       DWORD read_count;
       if (!ReadConsoleInput(input_handle, inputs.data(), static_cast<DWORD>(inputs.size()), &read_count))
         throw std::runtime_error{ "input_manager: fail ReadConsoleInput" };
@@ -104,6 +103,20 @@ public:
         }
       });
     }
+  };
+}
+
+class input_manager::impl
+{
+public:
+  impl(HANDLE& ih) noexcept
+    : input_handle{ ih },
+      value{ NormalInput{} }
+  { }
+
+  void update()
+  {
+    std::visit(input_updater{input_handle}, value);
   }
 
   void set_native(bool enable)

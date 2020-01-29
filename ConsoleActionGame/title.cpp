@@ -1,6 +1,11 @@
-#include "title.h"
+#include "updater.h"
+#include "render.h"
 
-Status title_func(Data* d)
+status updater::operator()(state::title&)
 {
-    return Gaming;
+  return state::gaming{};
+}
+
+void render::operator()(state::title&)
+{
 }

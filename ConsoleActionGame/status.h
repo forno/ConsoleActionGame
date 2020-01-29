@@ -1,16 +1,13 @@
 #pragma once
 
+#include <variant>
+
 namespace state
 {
   struct title {};
-  struct gaming {};
-  struct result {};
+  struct gaming { int atk; int life; };
+  struct result { int score; };
   struct finish {};
 }
-
-struct data
-{
-  int score; // TODO: modify for share datas
-};
 
 using status = std::variant<state::title, state::gaming, state::result, state::finish>;
