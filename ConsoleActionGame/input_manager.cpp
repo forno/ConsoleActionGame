@@ -2,6 +2,7 @@
 
 #include <array>
 #include <iostream>
+#include <mutex>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -71,6 +72,7 @@ struct NativeInput
 struct input_updater
 {
   HANDLE& input_handle;
+  std::mutex& m;
 
   void operator()(NormalInput& v)
   {
@@ -78,6 +80,7 @@ struct input_updater
     DWORD read_count;
     if (!ReadConsole(input_handle, inputs.data(), static_cast<DWORD>(inputs.size()), &read_count, nullptr))
       throw std::runtime_error{ "input_manager: fail ReadConsoleInput" };
+    std::lock_guard lg{ m };
     v.row_input.append(inputs.cbegin(), std::next(inputs.cbegin(), read_count));
   }
 
@@ -94,6 +97,7 @@ struct input_updater
       case KEY_EVENT: // keyboard input
       {
         const auto& key{ e.Event.KeyEvent };
+        std::lock_guard lg{ m };
         row_input.push_back(key.uChar.AsciiChar);
         if (!key.bKeyDown && key.wVirtualKeyCode == VK_RETURN) // this needed for detect key up
           ++v.enter_count;
@@ -150,10 +154,12 @@ struct input_manager::impl
 {
   HANDLE input_handle;
   std::variant<NormalInput, NativeInput> value;
+  std::mutex m;
 
   impl(HANDLE& ih) noexcept
     : input_handle{ ih },
-      value{ NormalInput{} }
+      value{ NormalInput{} },
+      m {}
   { }
 };
 
@@ -165,11 +171,12 @@ input_manager::~input_manager() noexcept { delete pimpl; }
 
 void input_manager::update()
 {
-  std::visit(input_updater{ pimpl->input_handle }, pimpl->value);
+  std::visit(input_updater{ pimpl->input_handle, pimpl->m }, pimpl->value);
 }
 
 void input_manager::set_native(bool enable)
 {
+  std::lock_guard lg{ pimpl->m };
   if (enable) {
     pimpl->value = NativeInput{ { pimpl->input_handle, ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS }, 0 };
   } else {
@@ -179,14 +186,20 @@ void input_manager::set_native(bool enable)
 
 unsigned int input_manager::get_enter_count() noexcept
 {
-  visit_guard vg{ input_reseter{}, pimpl->value };
-  if (std::holds_alternative<NativeInput>(pimpl->value))
-    return std::get<NativeInput>(pimpl->value).enter_count;
-  return 1;
+  std::lock_guard lg{ pimpl->m };
+  {
+    visit_guard vg{ input_reseter{}, pimpl->value };
+    if (std::holds_alternative<NativeInput>(pimpl->value))
+      return std::get<NativeInput>(pimpl->value).enter_count;
+    return 1;
+  }
 }
 
 std::string input_manager::getline()
 {
-  visit_guard vg{ input_reseter{}, pimpl->value };
-  return std::visit([](const auto& v) { return v.row_input; }, pimpl->value);
+  std::lock_guard lg{ pimpl->m };
+  {
+    visit_guard vg{ input_reseter{}, pimpl->value };
+    return std::visit([](const auto& v) { return v.row_input; }, pimpl->value);
+  }
 }
