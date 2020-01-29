@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <iostream>
+#include <random>
 #include <utility>
 #include <variant>
 
@@ -30,13 +31,20 @@ struct enter_just
 
   bool operator==(const enter_just& rhs) const noexcept { return false; }
 };
+struct grow_char
+{
+  std::uint_fast32_t hp;
+  std::uint_fast32_t atack;
+
+  bool operator==(const grow_char& rhs) const noexcept { return hp == rhs.hp && atack == rhs.atack; }
+};
 struct finish {
   std::int_fast32_t count{};
 
   bool operator==(const finish& f) const noexcept { return count == f.count; }
 };
 
-using status = std::variant<count_down, enter_mash, enter_just, finish>;
+using status = std::variant<count_down, enter_mash, enter_just, grow_char, finish>;
 
 struct updater
 {
@@ -46,7 +54,7 @@ struct updater
     using namespace std::literals::chrono_literals;
     const auto now{ std::chrono::steady_clock::now() };
     if (v.time_limit <= now)
-      return enter_just{ now + 5s };
+      return grow_char{ 50, 1 };
     return v;
   }
 
@@ -62,6 +70,20 @@ struct updater
     if (im.get_enter_count())
       return finish{ static_cast<std::int_fast32_t>(std::chrono::ceil<std::chrono::milliseconds>(v.time_limit - std::chrono::steady_clock::now()).count()) };
     return v;
+  }
+
+  status operator()(const grow_char& v) {
+    if (!im.get_enter_count())
+      return v;
+    std::uniform_int_distribution<std::uint_fast32_t> ud{ 0, 10 };
+    std::default_random_engine re{ std::random_device{}() };
+    const auto damage{ ud(re) };
+    if (v.hp <= damage)
+      return finish{ static_cast<std::int_fast32_t>(v.atack) };
+    auto res{ v };
+    res.hp -= damage;
+    res.atack += ud(re);
+    return res;
   }
 
   status operator()(finish& v) { return v; }
@@ -82,6 +104,48 @@ struct render
   void operator()(const enter_just& v) {
     std::cout << "!!!Just Push Enter!!!\n" <<
                  "Count down: " << std::chrono::ceil<std::chrono::milliseconds>(v.time_limit - std::chrono::steady_clock::now()).count() << " ms\n" << std::flush;
+  }
+
+  void operator()(const grow_char& v) {
+    std::cout << "atack: " << v.atack << " hp: " << v.hp << "\n\n";
+    if (v.atack < 15) {
+      std::cout << R"(
+　　　　（Ｕ＾ω＾）　わんわんお！
+　　Ｃ／　　　　ｌ
+　　　し－し－Ｊ)";
+    } else if (v.atack < 30) {
+      std::cout << R"(
+　　　　　　　/ヽ　　　　/ヽ
+　　　　　　 　/∧ヽ　＿/∧ヽ
+　　　　　 　 /　　　　　　　　 ヽ
+　　　　 　／　　　　　　　　　　|　　ｸｳｰﾝ・・・
+　　　　　 ●　　　●　　　　　　|
+　　　 ／　　　　　 　　　　　　ゝゝ
+　　 |▼　　　　　　　　　 ／　ヽ
+　　　ヽ人＿＿　　　　　 ／　／　ヽ　　
+　　　　　ヽ＿＿＿　　／　／　　　　ヽ
+　　　　　　　　 |＿正夫／　　　　　　　ヽ
+　　　　　　　　/　　　　　　　　　　　　　　＼
+　　　　　　　　|"　　　　””　　　　　　　　　　＼
+　　　　　　　　|　　　　　　　　　　　　　　　　　　＼
+　　　　　　　　|　　　　　　　　　　　　　　　　 　　　｜
+　　　　　　　　＼　　|　　　　　　　　　　　　　　 　　｜
+　　　　　　　　　｜＼　|　　　　　/　　　　　　　　　 ｜
+　　　　　　　　　｜　＼|　　　　/　/　　　　　　　　 　|
+　　　　　　　　　｜　｜/|　　　|　 |　　　　　　　　　　|　　　
+　　　　　　　　　｜　｜|｜　　|　　|　　　　　　　　　　|＿／￣￣/ 　　　
+　　　　　　　　／　　 | ＼|　　|　　 ＼　　　　　　　　|＼＿＿_／ 　　　　
+　　　　　　（（（＿_|　 （（（___　|-　（（________________／
+)";
+    } else {
+      std::cout << R"(
+　　　Ａ__Ａ  
+ 　　(o・ω・)  
+/ヽヘし 　　 !   
+＼/ヽｕ─ｕ'
+)";
+    }
+    std::cout << std::endl;
   }
 
   void operator()(finish&) { }
