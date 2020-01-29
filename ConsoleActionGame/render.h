@@ -6,8 +6,7 @@
 
 struct render
 {
-  std::mutex& m;
-  render(std::mutex& m);
+  render();
 
   void operator()(const state::title&);
   void operator()(const state::gaming&);

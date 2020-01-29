@@ -16,6 +16,11 @@ struct gaming {
   impl* pimpl;
 
   gaming(input_manager& im);
+  ~gaming() noexcept;
+  gaming(const gaming& g);
+  gaming& operator=(const gaming& g);
+  gaming(gaming&& g) noexcept;
+  gaming& operator=(gaming&& g) noexcept;
 };
 struct result {
   unsigned int score;

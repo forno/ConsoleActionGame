@@ -81,12 +81,14 @@ struct input_updater
 
   void operator()(NativeInput& v)
   {
+    auto& row_input{ v.row_input };
+    row_input.clear();
+    v.enter_count = 0;
     std::array<INPUT_RECORD, 1 << 8> inputs;
     DWORD read_count;
     if (!ReadConsoleInput(input_handle, inputs.data(), static_cast<DWORD>(inputs.size()), &read_count))
       throw std::runtime_error{ "input_manager: fail ReadConsoleInput" };
 
-    auto& row_input{ v.row_input };
     for_each(inputs.cbegin(), next(inputs.cbegin(), read_count), [&](const INPUT_RECORD& e) {
       switch (e.EventType) {
       case KEY_EVENT: // keyboard input

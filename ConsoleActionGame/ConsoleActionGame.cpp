@@ -1,14 +1,16 @@
 ﻿#include <Windows.h>
 
 #include <atomic>
+#include <chrono>
 #include <cstdlib>
 #include <mutex>
 #include <thread>
 
 #include "input_manager.h"
-#include "status.h"
-#include "updater.h"
 #include "render.h"
+#include "status.h"
+#include "thread_sleeper.h"
+#include "updater.h"
 
 int main(void)
 {
@@ -21,15 +23,24 @@ int main(void)
   std::mutex m;
   std::atomic_bool f{ true };
 
-  std::thread t{ [&]() {while (f) std::visit(render{ m }, s); } };
+  std::thread render_thread{ [&]() {
+    while (f) {
+      using namespace std::literals::chrono_literals;
+      const thread_sleeper ts{ 1000ms / 5 };
+      {
+        std::lock_guard lg{ m };
+        std::visit(render{}, s);
+      }
+    }
+  } };
 
   while (!is_finish(s)) {
     im.update();
-    auto s_tmp = std::visit(updater{ im }, s);
+    auto s_tmp{ std::visit(updater{ im }, s) };
     std::lock_guard lg{ m };
     s = std::move(s_tmp);
   }
   f = false;
-  t.join();
+  render_thread.join();
   return EXIT_SUCCESS;
 }

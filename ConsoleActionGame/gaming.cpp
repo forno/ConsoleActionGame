@@ -30,10 +30,11 @@ struct updater
   input_manager& im;
 
   status operator()(const count_down& v) {
-    if (std::chrono::steady_clock::now() < v.time_limit)
-      return v;
     using namespace std::literals::chrono_literals;
-    return enter_mash{ std::chrono::steady_clock::now() + 5s };
+    const auto now{ std::chrono::steady_clock::now() };
+    if (v.time_limit <= now)
+      return enter_mash{ now + 5s };
+    return v;
   }
 
   status operator()(const enter_mash& v) {
@@ -49,15 +50,13 @@ struct updater
 
 struct render
 {
-  std::mutex& m;
-
   void operator()(const count_down& v) {
-    std::cout << std::chrono::ceil<std::chrono::milliseconds>([&]() {std::lock_guard lg{ m };  return v.time_limit; }() - std::chrono::steady_clock::now()).count() << std::flush;
+    std::cout << std::chrono::ceil<std::chrono::seconds>(v.time_limit - std::chrono::steady_clock::now()).count() << std::flush;
   }
 
   void operator()(const enter_mash& v) {
     std::cout << "!!!Smash Enter!!!\n" <<
-                 "time_limit: " << std::chrono::ceil<std::chrono::milliseconds>([&]() {std::lock_guard lg{ m };  return v.time_limit; }() - std::chrono::steady_clock::now()).count() << " ms\n" << std::flush;
+                 "time_limit: " << std::chrono::ceil<std::chrono::seconds>(v.time_limit - std::chrono::steady_clock::now()).count() << " s\n" << std::flush;
   }
 
   void operator()(finish&) { }
@@ -74,8 +73,34 @@ struct state::gaming::impl
 
 state::gaming::gaming(input_manager& im)
   : pimpl{ new impl{} }
+{ im.set_native(true); }
+
+state::gaming::~gaming() { delete pimpl; }
+
+state::gaming::gaming(const gaming& g)
+  : pimpl{new impl{*g.pimpl}}
+{ }
+
+state::gaming& state::gaming::operator=(const gaming& g)
 {
-  im.set_native(true);
+  auto tmp{ pimpl };
+  pimpl = new impl{ *g.pimpl };
+  delete tmp;
+  return *this;
+}
+
+state::gaming::gaming(gaming&& g) noexcept
+  : pimpl{ g.pimpl }
+{
+  g.pimpl = nullptr;
+}
+
+state::gaming& state::gaming::operator=(gaming&& g) noexcept
+{
+  delete pimpl;
+  pimpl = g.pimpl;
+  g.pimpl = nullptr;
+  return *this;
 }
 
 status updater::operator()(const state::gaming& v)
@@ -89,5 +114,5 @@ status updater::operator()(const state::gaming& v)
 
 void render::operator()(const state::gaming & v)
 {
-  std::visit(game::render{ m }, v.pimpl->value);
+  std::visit(game::render{}, v.pimpl->value);
 }

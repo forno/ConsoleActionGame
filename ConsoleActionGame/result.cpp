@@ -32,7 +32,7 @@ status updater::operator()(const state::result& v)
 
 void render::operator()(const state::result& v)
 {
-  std::lock_guard lg{ m };
+  static bool init{ false };
   std::cout << "result: " << v.score << '\n' <<
                "> " << std::flush;
 }

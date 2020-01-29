@@ -4,8 +4,7 @@
 
 #include <Windows.h>
 
-render::render(std::mutex& m_)
-  : m {m_}
+render::render()
 {
   constexpr COORD top_left{ 0, 0 };
   HANDLE output_handle{ GetStdHandle(STD_OUTPUT_HANDLE) };

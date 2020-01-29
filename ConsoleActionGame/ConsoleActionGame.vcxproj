@@ -155,9 +155,11 @@
     <ClCompile Include="result.cpp" />
     <ClCompile Include="finish.cpp" />
     <ClCompile Include="status.cpp" />
+    <ClCompile Include="thread_sleeper.cpp" />
     <ClCompile Include="title.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="thread_sleeper.h" />
     <ClInclude Include="render.h" />
     <ClInclude Include="input_manager.h" />
     <ClInclude Include="status.h" />
