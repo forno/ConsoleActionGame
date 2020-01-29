@@ -9,9 +9,24 @@ state::result::result(input_manager& im, unsigned int score_)
   im.set_native(false);
 }
 
-status updater::operator()(state::result&)
+status updater::operator()(state::result& v)
 {
-  return state::title{ im };
+  const auto& input{ im.getline() };
+  if (input.empty())
+    return v;
+  switch (input.front()) {
+  case '1': [[fallthrough]]; // 1
+  case 'c': [[fallthrough]]; // continue
+  case 'e': [[fallthrough]]; // end
+  case 'f': [[fallthrough]]; // finish
+  case 'g': [[fallthrough]]; // gaming
+  case 'q': [[fallthrough]]; // quit
+  case 't':                  // title
+    return state::title{ im };
+  default:
+    return v;
+  }
+  return v;
 }
 
 void render::operator()(state::result& v)
