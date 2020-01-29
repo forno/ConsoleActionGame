@@ -10,6 +10,5 @@ struct updater
   status operator()(state::title&);
   status operator()(state::gaming&);
   status operator()(state::result&);
-  [[noreturn]]
   status operator()(state::finish&);
 };

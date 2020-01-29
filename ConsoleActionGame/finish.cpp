@@ -3,7 +3,6 @@
 
 #include <cstdlib>
 
-[[noreturn]]
 status updater::operator()(state::finish&)
 {
   std::exit(EXIT_SUCCESS);
