@@ -72,15 +72,15 @@ struct NativeInput
 struct input_updater
 {
   HANDLE& input_handle;
-  std::mutex& m;
 
   void operator()(NormalInput& v)
   {
     std::array<char, 1 << 8> inputs;
     DWORD read_count;
+    if (!GetNumberOfConsoleInputEvents(input_handle, &read_count) || !read_count)
+      return;
     if (!ReadConsole(input_handle, inputs.data(), static_cast<DWORD>(inputs.size()), &read_count, nullptr))
       throw std::runtime_error{ "input_manager: fail ReadConsoleInput" };
-    std::lock_guard lg{ m };
     v.row_input.append(inputs.cbegin(), std::next(inputs.cbegin(), read_count));
   }
 
@@ -88,6 +88,8 @@ struct input_updater
   {
     std::array<INPUT_RECORD, 1 << 8> inputs;
     DWORD read_count;
+    if (!GetNumberOfConsoleInputEvents(input_handle, &read_count) || !read_count)
+      return;
     if (!ReadConsoleInput(input_handle, inputs.data(), static_cast<DWORD>(inputs.size()), &read_count))
       throw std::runtime_error{ "input_manager: fail ReadConsoleInput" };
 
@@ -97,7 +99,6 @@ struct input_updater
       case KEY_EVENT: // keyboard input
       {
         const auto& key{ e.Event.KeyEvent };
-        std::lock_guard lg{ m };
         row_input.push_back(key.uChar.AsciiChar);
         if (!key.bKeyDown && key.wVirtualKeyCode == VK_RETURN) // this needed for detect key up
           ++v.enter_count;
@@ -171,7 +172,8 @@ input_manager::~input_manager() noexcept { delete pimpl; }
 
 void input_manager::update()
 {
-  std::visit(input_updater{ pimpl->input_handle, pimpl->m }, pimpl->value);
+  std::lock_guard lg{ pimpl->m };
+  std::visit(input_updater{ pimpl->input_handle }, pimpl->value);
 }
 
 void input_manager::set_native(bool enable)
