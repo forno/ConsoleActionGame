@@ -1,6 +1,9 @@
 ﻿#include <Windows.h>
 
+#include <atomic>
 #include <cstdlib>
+#include <mutex>
+#include <thread>
 
 #include "input_manager.h"
 #include "status.h"
@@ -15,11 +18,18 @@ int main(void)
 
   input_manager im{ input_handle };
   status s{ state::title{ im } };
+  std::mutex m;
+  std::atomic_bool f{ true };
 
-  while (true) {
-    std::visit(render{}, s);
+  std::thread t{ [&]() {while (f) std::visit(render{ m }, s); } };
+
+  while (!is_finish(s)) {
     im.update();
-    s = std::visit(updater{ im }, s);
+    auto s_tmp = std::visit(updater{ im }, s);
+    std::lock_guard lg{ m };
+    s = std::move(s_tmp);
   }
+  f = false;
+  t.join();
   return EXIT_SUCCESS;
 }

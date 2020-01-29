@@ -18,9 +18,9 @@ struct gaming {
   gaming(input_manager& im);
 };
 struct result {
-  result(input_manager& im, unsigned int score);
-
   unsigned int score;
+
+  result(input_manager& im, unsigned int score);
 };
 struct finish {
   finish(input_manager& im);
@@ -29,3 +29,5 @@ struct finish {
 }
 
 using status = std::variant<state::title, state::gaming, state::result, state::finish>;
+
+bool is_finish(const status& v) noexcept;

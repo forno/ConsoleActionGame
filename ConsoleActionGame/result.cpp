@@ -9,11 +9,12 @@ state::result::result(input_manager& im, unsigned int score_)
   im.set_native(false);
 }
 
-status updater::operator()(state::result& v)
+status updater::operator()(const state::result& v)
 {
   const auto& input{ im.getline() };
-  if (input.empty())
+  if (input.empty()) {
     return v;
+  }
   switch (input.front()) {
   case '1': [[fallthrough]]; // 1
   case 'c': [[fallthrough]]; // continue
@@ -29,8 +30,9 @@ status updater::operator()(state::result& v)
   return v;
 }
 
-void render::operator()(state::result& v)
+void render::operator()(const state::result& v)
 {
+  std::lock_guard lg{ m };
   std::cout << "result: " << v.score << '\n' <<
                "> " << std::flush;
 }

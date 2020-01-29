@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mutex>
+
 #include "input_manager.h"
 #include "status.h"
 
@@ -7,8 +9,8 @@ struct updater
 {
   input_manager& im;
 
-  status operator()(state::title&);
-  status operator()(state::gaming&);
-  status operator()(state::result&);
-  status operator()(state::finish&);
+  status operator()(const state::title&);
+  status operator()(const state::gaming&);
+  status operator()(const state::result&);
+  status operator()(const state::finish&);
 };

@@ -154,6 +154,7 @@
     <ClCompile Include="render.cpp" />
     <ClCompile Include="result.cpp" />
     <ClCompile Include="finish.cpp" />
+    <ClCompile Include="status.cpp" />
     <ClCompile Include="title.cpp" />
   </ItemGroup>
   <ItemGroup>

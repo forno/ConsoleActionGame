@@ -1,14 +1,17 @@
 #pragma once
 
+#include <mutex>
+
 #include "status.h"
 
 struct render
 {
-  render();
+  std::mutex& m;
+  render(std::mutex& m);
 
-  void operator()(state::title&);
-  void operator()(state::gaming&);
-  void operator()(state::result&);
+  void operator()(const state::title&);
+  void operator()(const state::gaming&);
+  void operator()(const state::result&);
   [[noreturn]]
-  void operator()(state::finish&);
+  void operator()(const state::finish&);
 };
