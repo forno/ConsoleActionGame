@@ -75,10 +75,10 @@ struct input_updater
 
   void operator()(NormalInput& v)
   {
-    std::array<char, 1 << 8> inputs;
     DWORD read_count;
     if (!GetNumberOfConsoleInputEvents(input_handle, &read_count) || !read_count)
       return;
+    std::array<char, 1 << 8> inputs;
     if (!ReadConsole(input_handle, inputs.data(), static_cast<DWORD>(inputs.size()), &read_count, nullptr))
       throw std::runtime_error{ "input_manager: fail ReadConsoleInput" };
     v.row_input.append(inputs.cbegin(), std::next(inputs.cbegin(), read_count));
@@ -86,10 +86,10 @@ struct input_updater
 
   void operator()(NativeInput& v)
   {
-    std::array<INPUT_RECORD, 1 << 8> inputs;
     DWORD read_count;
     if (!GetNumberOfConsoleInputEvents(input_handle, &read_count) || !read_count)
       return;
+    std::array<INPUT_RECORD, 1 << 8> inputs;
     if (!ReadConsoleInput(input_handle, inputs.data(), static_cast<DWORD>(inputs.size()), &read_count))
       throw std::runtime_error{ "input_manager: fail ReadConsoleInput" };
 
