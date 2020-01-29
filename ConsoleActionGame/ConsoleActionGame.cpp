@@ -27,9 +27,9 @@ int main(void)
 
   std::thread render_thread{ [&]() {
     while (!is_termination) {
-      using namespace std::literals::chrono_literals;
-      thread_sleeper ts{ 1000ms / 10 };
       if (is_changed) {
+        using namespace std::literals::chrono_literals;
+        thread_sleeper ts{ 1000ms / 5 };
         is_changed = false;
         std::lock_guard lg{ m };
         std::visit(render{}, s);
