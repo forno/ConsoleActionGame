@@ -24,16 +24,16 @@ int main(void)
   std::mutex m;
   std::atomic_bool is_termination{ false };
   std::atomic_bool is_changed{ true };
+  std::condition_variable cv;
 
   std::thread render_thread{ [&]() {
     while (!is_termination) {
-      if (is_changed) {
-        using namespace std::literals::chrono_literals;
-        thread_sleeper ts{ 1000ms / 5 };
-        is_changed = false;
-        std::lock_guard lg{ m };
-        std::visit(render{}, s);
-      }
+      using namespace std::literals::chrono_literals;
+      thread_sleeper ts{ 1000ms / 5 };
+      std::unique_lock lg{ m };
+      cv.wait(lg, [&]{ return static_cast<bool>(is_changed); });
+      is_changed = false;
+      std::visit(render{}, s);
     }
   } };
 
@@ -42,8 +42,10 @@ int main(void)
     thread_sleeper ts{ 1000ms / 60 };
     im.update();
     auto next_state{ std::visit(updater{ im }, s) };
-    if (!(s == next_state))
+    if (!(s == next_state)) {
       is_changed = true;
+      cv.notify_one();
+    }
     std::lock_guard lg{ m };
     s = std::move(next_state);
   }
