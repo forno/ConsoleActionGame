@@ -12,6 +12,10 @@ namespace
 namespace game
 {
 
+struct game_select
+{
+  bool operator==(const game_select& rhs) const noexcept { return true; }
+};
 struct count_down
 {
   std::chrono::steady_clock::time_point time_limit;
@@ -44,18 +48,41 @@ struct finish {
   bool operator==(const finish& f) const noexcept { return count == f.count; }
 };
 
-using status = std::variant<count_down, enter_mash, enter_just, grow_char, finish>;
+using status = std::variant<game_select, count_down, enter_mash, enter_just, grow_char, finish>;
 
 struct updater
 {
   input_manager& im;
 
-  status operator()(const count_down& v) {
-    using namespace std::literals::chrono_literals;
-    const auto now{ std::chrono::steady_clock::now() };
-    if (v.time_limit <= now)
+  status operator()(const game_select& v) {
+    const auto& s{ im.getline() };
+    if (s.empty())
+      return v;
+    switch (s.front())
+    {
+    case 'g':
+    case 'c':
       return grow_char{ 50, 1 };
-    return v;
+    case 'j':
+    case 't':
+      using namespace std::literals::chrono_literals;
+      return enter_just{ std::chrono::steady_clock::now() + 5s};
+    case 'r':
+    case 'm':
+      using namespace std::literals::chrono_literals;
+      return count_down{ std::chrono::steady_clock::now() + 3s};
+    default:
+      return v;
+      break;
+    }
+  }
+
+  status operator()(const count_down& v) {
+    const auto now{ std::chrono::steady_clock::now() };
+    if (now < v.time_limit)
+      return v;
+    using namespace std::literals::chrono_literals;
+    return enter_mash{ now + 5s };
   }
 
   status operator()(const enter_mash& v) {
@@ -91,6 +118,14 @@ struct updater
 
 struct render
 {
+  void operator()(const game_select& v) {
+    std::cout << R"(
+Please select a game mode
+g: grow charactor mode
+m: enter MASH MASH MASH mode
+j: just push enter mode)" << std::flush;
+  }
+
   void operator()(const count_down& v) {
     std::cout << "Are you ready to smash enter key?\n" <<
                  "Count down: " << std::chrono::ceil<std::chrono::seconds>(v.time_limit - std::chrono::steady_clock::now()).count() << std::flush;
@@ -157,7 +192,7 @@ struct render
 using namespace std::literals::chrono_literals;
 struct state::gaming::impl
 {
-  game::status value{ game::count_down{std::chrono::steady_clock::now() + 3s} };
+  game::status value{ game::game_select{ } };
 };
 
 state::gaming::gaming(input_manager& im)
