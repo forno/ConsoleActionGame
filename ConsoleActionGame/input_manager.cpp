@@ -175,7 +175,7 @@ void input_manager::update()
 void input_manager::set_native(bool enable)
 {
   if (enable) {
-    pimpl->value = NativeInput{ { pimpl->input_handle, ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS }, 0 };
+    pimpl->value = NativeInput{ { pimpl->input_handle, ENABLE_PROCESSED_INPUT }, 0 };
   } else {
     pimpl->value = NormalInput{ };
   }
